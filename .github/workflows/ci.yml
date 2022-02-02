@@ -1,27 +1,35 @@
-name: Python package
-
+name: check
 on:
-  - push
-  - pull_request
+  push:
+  pull_request:
+
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  test:
+    name: test ${{ matrix.py }} - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10']
-
+        os:
+          - Ubuntu
+        py:
+          - "3.10"
+          - "3.9"
+          - "3.8"
+          - "3.7"
+          - "3.6"
     steps:
-    - uses: actions/checkout@v1
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        pip install pipenv
-        pipenv install --dev && pipenv shell
-        
-        
-    - name: Test with pytest
-      run: pytest
+      - name: Setup python for test ${{ matrix.py }}
+        uses: actions/[email protected]
+        with:
+          python-version: ${{ matrix.py }}
+      - uses: actions/[email protected]
+      - name: Install tox-gh
+        run: python -m pip install tox-gh
+      - name: Setup test suite
+        run: tox4 r -vv --notest
+      - name: Run test suite
+        run: tox4 r --skip-pkg-install
+        env:
+          PYTEST_ADDOPTS: "-vv --durations=10"
